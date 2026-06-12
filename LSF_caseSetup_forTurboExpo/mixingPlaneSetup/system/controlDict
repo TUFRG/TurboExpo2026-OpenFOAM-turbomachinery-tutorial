@@ -1,0 +1,226 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2006                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+libs
+(
+    "libMixingPlane.so"
+//    "libSAHIncompressibleTurbulenceModel.so"
+);
+
+application     	simpleFoam;
+
+startFrom       	latestTime;
+
+startTime       	0;
+
+stopAt          	endTime;
+
+endTime         	200;
+
+deltaT          	1;
+
+writeControl    	runTime;
+
+writeInterval   	100;
+
+purgeWrite      	1;
+
+writeFormat     	binary;
+
+timeFormat      	general;
+
+timePrecision   	8;
+
+runTimeModifiable 	true;
+
+functions
+{
+    UrelMRF
+    {
+        type            UrelMRF;
+        libs            (TurboTools);
+        executeControl  writeTime;
+        writeControl    writeTime;
+    }
+
+    cylindricalRelativeVelocity
+    {
+        type            fieldCoordinateSystemTransform;
+        libs            (fieldFunctionObjects);
+        fields          (U UrelMRF);
+        executeControl  writeTime;
+        writeControl    writeTime;
+        coordinateSystem
+        {
+            type    cylindrical;
+            origin  (0 0 0);
+            rotation
+            {
+                type cylindrical;
+                axis (0 0 1);
+            }
+        }
+    }
+
+    flowRateInlet
+    {
+        name            inlet;
+        type            surfaceFieldValue;
+        libs            ( "libfieldFunctionObjects.so" );
+        executeControl  writeTime;
+        writeControl    writeTime;
+        writeFields     off;
+        log             yes;
+        regionType	patch;
+        fields          ( phi );
+        operation	sum;
+    }
+    flowRateOutlet
+    {
+        name            Outlet;
+        type            surfaceFieldValue;
+        libs            ( "libfieldFunctionObjects.so" );
+        executeControl  writeTime;
+        writeControl    writeTime;
+        writeFields     off;
+        log             yes;
+        regionType	patch;
+        fields          ( phi );
+        operation	sum;
+    }
+    yPlus
+    {
+        type            yPlus;
+        libs            ( fieldFunctionObjects );
+        writeFields     yes;
+        executeControl  writeTime;
+        writeControl    writeTime;
+    }
+	totalPressureFunc
+	{
+		type			pressure;
+		libs			(fieldFunctionObjects);
+		mode			total;
+		writeControl	writeTime;
+		executeControl	writeTime;
+		rho				rhoInf;
+		rhoInf			1.0;
+	}
+    massAvgInlet
+    {
+     	type            surfaceFieldValue;
+        libs            (fieldFunctionObjects);
+        enabled         yes;
+		writeControl	writeTime;
+		executeControl	writeTime;
+        log             yes;
+        writeFields     yes;
+        surfaceFormat   raw;
+        regionType		patch;
+        name            inlet;
+        operation		weightedAverage;
+        weightField     phi;
+        fields          (total(p) U p);
+    }
+    massAvgInterface
+    {
+        type            surfaceFieldValue;
+        libs            (fieldFunctionObjects);
+        enabled         yes;
+        log             yes;
+        writeFields     yes;
+        surfaceFormat   raw;
+        regionType		patch;
+        name            interface2;
+        operation		weightedAverage;
+        weightField     phi;
+        fields          (total(p) U p rotorOutletVth rotorOutletHt);
+		writeControl	writeTime;
+		executeControl	writeTime;
+    }
+    massAvgOutlet
+    {
+        type            surfaceFieldValue;
+        libs            (fieldFunctionObjects);
+        enabled         yes;
+		writeControl	writeTime;
+		executeControl	writeTime;
+        log             yes;
+        writeFields     yes;
+        surfaceFormat   raw;
+        regionType      patch;
+        name            Outlet;
+        operation       weightedAverage;
+        weightField     phi;
+        fields			(total(p) U p);
+    }
+    coordinateTransform
+    {
+        type		fieldCoordinateSystemTransform;
+        libs		(fieldFunctionObjects);
+        log		true;
+        fields		(U);
+        writeControl	writeTime;
+        executeControl	writeTime;
+
+        coordinateSystem
+        {
+            type	cylindrical;
+            origin	(0 0 0);
+
+            rotation
+            {
+                type	cylindrical;
+                axis	(0 0 1);
+            }
+        }
+    }
+    rotorOutletVth
+    {
+        type            exprField;
+        libs            (fieldFunctionObjects);
+        field           rotorOutletVth;
+        variables
+        (
+            "Vth = ('U:Transformed'.y())"
+        );
+        expression	"1*Vth";
+        dimensions	[0 1 -1 0 0 0 0];
+        executeControl  writeTime;
+        writeControl    writeTime;
+    }
+    rotorOutletHt
+    {
+        type		exprField;
+        libs		(fieldFunctionObjects);
+        field		rotorOutletHt;
+        variables
+        (
+            "x = pos().x()"
+            "y = pos().y()"
+            "radius = sqrt((x*x)+(y*y))"
+            "Vth = ('U:Transformed'.y())"
+        );
+        expression	"185.8776*radius*Vth"; // number is angular velocity in rad/s
+        dimensions	[0 2 -2 0 0 0 0];
+        executeControl	writeTime;
+        writeControl	writeTime;
+    }
+
+}
+
+// ************************************************************************* //

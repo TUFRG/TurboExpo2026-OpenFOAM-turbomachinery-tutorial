@@ -1,0 +1,531 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2112                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format	ascii;
+    class	dictionary;
+    object	blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// The axis of rotation of this machine is the z axis
+// Hence the radial direction is denoted x and the axial direction is z (x = mz + c)
+// There are three positions in the circumferential cordinate in this domain 
+// The positive rotation is represented as p and negative as n while the middle position is represented as m
+
+scale  0.01; // The data came in cm so this converts it to m (SI units)
+tol 1e-5;
+
+//Defining the number of points in the blocks
+ptsTheta 60;                    //Circumferential points for each pitch
+ptsRHub #eval{1*$ptsTheta};     //Spanwise points for the butterfly mesh
+ptsRTopBL 25;                   //Spanwise points in the top boundary layer
+ptsRMid 25;                     //Spanwise points in the middle layer
+ptsRLow 20;                     //Spanwise points in the lower layer
+ptsHubBL 25;                    //number of points normal to the spinner nose surface
+ptsZslip 15;                    //Axial points in the slip region
+ptsZnoSlip 25;                  //Axial points in the no-slip region
+
+//Defining the grading in the blocks
+gTopBL 0.004;                   //Spanwise grading of top boundary layer block
+gAxSlip 0.3;
+gAxNoSlip 0.274;
+gHubBL 0.05;
+gRLow 10;
+G 1;
+
+del     2;                      //Boundary layer thickness
+
+B 12;                           //Number of blades
+Angle #eval{2*360/$B};          //Angle for 2 blade passages
+pAng #eval{0.5*$Angle};         //positive Angle
+nAng #eval{-0.5*$Angle};        //negative Angle
+pMidAng #eval{0.5 * $pAng};     //positve midAngle
+nMidAng #eval{0.5*$nAng};	//negative midAngle
+
+hubLEx  0;                      //farUpstream inlet hub
+hubLEz -80;                     //farUpstream inlet hub
+
+hubTEx 5.196355250669;          //farUpstream outlet/rotor inlet hub
+hubTEz -10;                     ///farUpstream outlet/rotor inlet hub
+
+casLEx 25.4;             	//farUpstream inlet casing
+casLEz -80;                     //farUpstream inlet casing
+
+casTEx 25.4;             	//farupstream outlet/rotor inlet casing
+casTEz -10;                     //farUpstream outlet/rotor inlet casing 
+
+SpTipx 0;                       //spinner nose tip
+SpTipz -17.50;                 //spinner nose tip 
+
+hubSlipx 0;                     //Abitrary cut on hub where wall changed to slip
+hubSlipz -30;                   //Abitrary cut on hub where wall changed to slip
+
+casSlipx 25.4;			//Abitrary cut on casing where wall changed to slip
+casSlipz -30;                   //Abitrary cut on casing where wall changed to slip
+
+Nose 2.9158121343079815; 		//Analytically defined point calculated based on cone equation
+NoseB 3.4227722243202203; 		//Analytically defined point calculated based on cone equation
+
+
+//y+ = 2, Re = 2.1e5, deltaS = 2.6563e-5
+A 0.5; //parameter for adjusting the diamond in the butterfly mesh
+B 0.6;
+slope #eval{($hubTEx - $SpTipx)/($hubTEz - $SpTipz)}; // slope of the cone
+intercept #eval{$hubTEx - ($slope * $hubTEz)};
+
+slope1 1; //#eval{($casTEx - $hubTEx)/($casTEz - $hubTEz)}; //slope of the outlet 
+
+
+x0y0m ($hubLEx 0 $hubLEz);
+x1y0m ($hubLEx 0 #eval{$SpTipz - $del});
+x2y0m ($SpTipx 0 $SpTipz);
+xSy0m ($hubSlipx 0 $hubSlipz);
+
+x0y1m (#eval{($NoseB)} 0 $hubLEz);
+x0y1p (#eval{$Nose * cos(degToRad($pAng))} #eval{$Nose * sin(degToRad($pAng))} $hubLEz);
+x0y1n (#eval{$Nose * cos(degToRad($nAng))} #eval{$Nose * sin(degToRad($nAng))} $hubLEz);
+
+x1y1m (#eval{$NoseB} 0 #eval{(($B*($SpTipx + $hubTEx)) - $intercept)/$slope - $del});
+x1y1p (#eval{$Nose * cos(degToRad($pAng))} #eval{$Nose * sin(degToRad($pAng))} #eval{(($A*($SpTipx + $hubTEx)) - $intercept)/$slope - $del});
+x1y1n (#eval{$Nose * cos(degToRad($nAng))} #eval{$Nose * sin(degToRad($nAng))} #eval{(($A*($SpTipx + $hubTEx)) - $intercept)/$slope - $del});
+
+x2y1m ($NoseB 0 #eval{(($B*($SpTipx + $hubTEx)) - $intercept)/$slope });
+x2y1p (#eval{$Nose * cos(degToRad($pAng))} #eval{$Nose * sin(degToRad($pAng))} #eval{(($A*($SpTipx + $hubTEx)) - $intercept)/$slope});
+x2y1n (#eval{$Nose * cos(degToRad($nAng))} #eval{$Nose * sin(degToRad($nAng))} #eval{(($A*($SpTipx + $hubTEx)) - $intercept)/$slope});
+
+x0y2m (#eval{$hubTEx + $del} 0 $hubLEz);
+x0y2p (#eval{($hubTEx + $del) * cos(degToRad($pAng))} #eval{($hubTEx + $del) * sin(degToRad($pAng))} $hubLEz);
+x0y2n (#eval{($hubTEx + $del) * cos(degToRad($nAng))} #eval{($hubTEx + $del) * sin(degToRad($nAng))} $hubLEz);
+
+x2y2m ($hubTEx 0 $hubTEz);
+x2y2p (#eval{$hubTEx * cos(degToRad($pAng))} #eval{$hubTEx * sin(degToRad($pAng))} $hubTEz);
+x2y2n (#eval{$hubTEx * cos(degToRad($nAng))} #eval{$hubTEx * sin(degToRad($nAng))} $hubTEz);
+
+x0y3m (#eval{$casLEx - $del} 0 $casLEz);
+x0y3p (#eval{($casLEx - $del) * cos(degToRad($pAng))} #eval{($casLEx - $del) * sin(degToRad($pAng))} $casLEz);
+x0y3n (#eval{($casLEx - $del) * cos(degToRad($nAng))} #eval{($casLEx - $del) * sin(degToRad($nAng))} $casLEz);
+
+x2y3m (#eval{$hubTEx + $del} 0 #eval{$hubTEz });
+x2y3p (#eval{($hubTEx + $del) * cos(degToRad($pAng))} #eval{($hubTEx + $del) * sin(degToRad($pAng))} #eval{$hubTEz});
+x2y3n (#eval{($hubTEx + $del) * cos(degToRad($nAng))} #eval{($hubTEx + $del) * sin(degToRad($nAng))} #eval{$hubTEz });
+
+x0y4m ($casLEx 0 $casLEz);
+x0y4p (#eval{$casLEx * cos(degToRad($pAng))} #eval{$casLEx * sin(degToRad($pAng))} $casLEz);
+x0y4n (#eval{$casLEx * cos(degToRad($nAng))} #eval{$casLEx * sin(degToRad($nAng))} $casLEz);
+
+x2y4m (#eval{$casTEx - $del} 0 #eval{$casTEz });
+x2y4p (#eval{($casTEx - $del) * cos(degToRad($pAng))} #eval{($casTEx - $del) * sin(degToRad($pAng))} #eval{$casTEz });
+x2y4n (#eval{($casTEx - $del) * cos(degToRad($nAng))} #eval{($casTEx - $del) * sin(degToRad($nAng))} #eval{$casTEz });
+
+x2y5m ($casTEx 0 $casTEz);
+x2y5p (#eval{$casTEx * cos(degToRad($pAng))} #eval{$casTEx * sin(degToRad($pAng))} $casTEz);
+x2y5n (#eval{$casTEx * cos(degToRad($nAng))} #eval{$casTEx * sin(degToRad($nAng))} $casTEz);
+
+xSy1m (#eval{$NoseB} 0 $hubSlipz);
+xSy1p (#eval{$Nose * cos(degToRad($pAng))} #eval{$Nose * sin(degToRad($pAng))} $hubSlipz);
+xSy1n (#eval{$Nose * cos(degToRad($nAng))} #eval{$Nose * sin(degToRad($nAng))} $hubSlipz);
+
+xSy2m (#eval{$hubTEx + $del} 0 $hubSlipz);
+xSy2p (#eval{($hubTEx + $del) * cos(degToRad($pAng))} #eval{($hubTEx + $del) * sin(degToRad($pAng))} $hubSlipz);
+xSy2n (#eval{($hubTEx + $del) * cos(degToRad($nAng))} #eval{($hubTEx + $del) * sin(degToRad($nAng))} $hubSlipz);
+
+xSy3m (#eval{$casSlipx - $del} 0 $casSlipz);
+xSy3p (#eval{($casSlipx - $del) * cos(degToRad($pAng))} #eval{($casSlipx - $del) * sin(degToRad($pAng))} $casSlipz);
+xSy3n (#eval{($casSlipx - $del) * cos(degToRad($nAng))} #eval{($casSlipx - $del) * sin(degToRad($nAng))} $casSlipz);
+
+xSy4m ($casSlipx 0 $casSlipz);
+xSy4p (#eval{$casSlipx * cos(degToRad($pAng))} #eval{$casSlipx * sin(degToRad($pAng))} $casSlipz);
+xSy4n (#eval{$casSlipx * cos(degToRad($nAng))} #eval{$casSlipx * sin(degToRad($nAng))} $casSlipz);
+
+// Defining the Arcs
+Mx0y3Px0y3 (#eval{($casLEx - $del) * cos(degToRad($pMidAng))} #eval{($casLEx - $del) * sin(degToRad($pMidAng))} $casLEz);
+Mx0y4Px0y4 (#eval{$casLEx  * cos(degToRad($pMidAng))} #eval{$casLEx * sin(degToRad($pMidAng))} $casLEz);
+Mx2y4Px2y4 (#eval{($casTEx - $del) * cos(degToRad($pMidAng))} #eval{($casTEx - $del) * sin(degToRad($pMidAng))} #eval{$casTEz});
+Mx2y5Px2y5 (#eval{$casTEx * cos(degToRad($pMidAng))} #eval{$casTEx * sin(degToRad($pMidAng))} $casTEz);
+
+Mx0y3Nx0y3 (#eval{($casLEx - $del) * cos(degToRad($nMidAng))} #eval{($casLEx - $del) * sin(degToRad($nMidAng))} $casLEz);
+Mx0y4Nx0y4 (#eval{$casLEx  * cos(degToRad($nMidAng))} #eval{$casLEx * sin(degToRad($nMidAng))} $casLEz);
+Mx2y4Nx2y4 (#eval{($casTEx - $del) * cos(degToRad($nMidAng))} #eval{($casTEx - $del) * sin(degToRad($nMidAng))} #eval{$casTEz});
+Mx2y5Nx2y5 (#eval{$casTEx * cos(degToRad($nMidAng))} #eval{$casTEx * sin(degToRad($nMidAng))} $casTEz);
+
+Mx0y1Px0y1 (#eval{$Nose * cos(degToRad($pMidAng))} #eval{$Nose * sin(degToRad($pMidAng))} $hubLEz);
+Mx0y1Nx0y1 (#eval{$Nose * cos(degToRad($nMidAng))} #eval{$Nose * sin(degToRad($nMidAng))} $hubLEz);
+Mx1y1Px1y1 (#eval{$Nose * cos(degToRad($pMidAng))} #eval{$Nose * sin(degToRad($pMidAng))} #eval{$A*($SpTipz + $hubTEz) - $del});
+Mx1y1Nx1y1 (#eval{$Nose * cos(degToRad($nMidAng))} #eval{$Nose * sin(degToRad($nMidAng))} #eval{$A*($SpTipz + $hubTEz) - $del});
+
+Mx0y2Px0y2 (#eval{($hubTEx + $del) * cos(degToRad($pMidAng))} #eval{($hubTEx + $del) * sin(degToRad($pMidAng))} $hubLEz);
+Mx0y2Nx0y2 (#eval{($hubTEx + $del) * cos(degToRad($nMidAng))} #eval{($hubTEx + $del) * sin(degToRad($nMidAng))} $hubLEz); 
+Mx2y3Px2y3 (#eval{($hubTEx + $del) * cos(degToRad($pMidAng))} #eval{($hubTEx + $del) * sin(degToRad($pMidAng))} #eval{$hubTEz});
+Mx2y3Nx2y3 (#eval{($hubTEx + $del) * cos(degToRad($nMidAng))} #eval{($hubTEx + $del) * sin(degToRad($nMidAng))} #eval{$hubTEz });
+
+Mx2y2Px2y2 (#eval{$hubTEx * cos(degToRad($pMidAng))} #eval{$hubTEx * sin(degToRad($pMidAng))} $hubTEz);
+Mx2y2Nx2y2 (#eval{$hubTEx * cos(degToRad($nMidAng))} #eval{$hubTEx * sin(degToRad($nMidAng))} $hubTEz);
+
+Mx2y1Px2y1 (#eval{$NoseB * cos(degToRad($pMidAng))} #eval{$NoseB * sin(degToRad($pMidAng))} #eval{(($B*($SpTipx + $hubTEx)) - $intercept)/$slope});
+Mx2y1Nx2y1 (#eval{$NoseB * cos(degToRad($nMidAng))} #eval{$NoseB * sin(degToRad($nMidAng))} #eval{(($B*($SpTipx + $hubTEx)) - $intercept)/$slope});
+
+MxSy1PxSy1 (#eval{(($slope*$A*($SpTipx + $hubTEx)) + $intercept) * cos(degToRad($pMidAng))} #eval{(($slope*$A*($SpTipx + $hubTEx)) + $intercept) * sin(degToRad($pMidAng))} $hubSlipz);
+MxSy1NxSy1 (#eval{(($slope*$A*($SpTipx + $hubTEx)) + $intercept) * cos(degToRad($nMidAng))} #eval{(($slope*$A*($SpTipx + $hubTEx)) + $intercept) * sin(degToRad($nMidAng))} $hubSlipz);
+MxSy2PxSy2 (#eval{($hubTEx + $del) * cos(degToRad($pMidAng))} #eval{($hubTEx + $del) * sin(degToRad($pMidAng))} $hubSlipz);
+MxSy2NxSy2 (#eval{($hubTEx + $del) * cos(degToRad($nMidAng))} #eval{($hubTEx + $del) * sin(degToRad($nMidAng))} $hubSlipz);
+MxSy3PxSy3 (#eval{($casSlipx - $del) * cos(degToRad($pMidAng))} #eval{($casSlipx - $del) * sin(degToRad($pMidAng))} $casSlipz);
+MxSy3NxSy3 (#eval{($casSlipx - $del) * cos(degToRad($nMidAng))} #eval{($casSlipx - $del) * sin(degToRad($nMidAng))} $casSlipz);
+MxSy4PxSy4 (#eval{$casSlipx  * cos(degToRad($pMidAng))} #eval{$casSlipx * sin(degToRad($pMidAng))} $casSlipz);
+MxSy4NxSy4 (#eval{$casSlipx  * cos(degToRad($nMidAng))} #eval{$casSlipx * sin(degToRad($nMidAng))} $casSlipz);
+
+geometry
+{
+        hub
+        {
+                type    triSurfaceMesh;
+                file    "hub.stl";
+        }
+        mPer
+        {
+                type    triSurfaceMesh;
+                file    "mPer.stl";
+        }
+        nPer
+        {
+		type searchablePlane;
+		planeType embeddedPoints;
+		embeddedPointsDict
+		{
+			point1  $x0y0m; // inlet, mPer, hub
+		        point2  $x2y5n; // outlet, nPer, casing
+		        point3  $x0y4n; // inlet, nPer, casing
+		}
+        }
+        nVal 
+        {
+		type searchablePlane;
+		planeType embeddedPoints;
+		embeddedPointsDict
+		{
+		        point1  $x2y1n; // hub, nVal
+		        point2  $x2y1m; // hub, middle
+		        point3  $x1y1m; // hub offset, middle
+		}
+        }
+        pPer
+        {
+		type searchablePlane;
+		planeType embeddedPoints;
+		embeddedPointsDict
+		{
+		        point1  $x0y0m; // inlet, mPer, hub
+		        point2  $x2y5p; // outlet, pPer, casing
+		        point3  $x0y4p; // inlet, pPer, casing
+		}
+        }
+        pVal
+        {
+		type searchablePlane;
+		planeType embeddedPoints;
+		embeddedPointsDict
+		{
+		        point1  $x2y1p; // hub, pVal
+		        point2  $x2y1m; // hub, middle
+		        point3  $x1y1m; // hub offset, middle
+		}
+        }
+        //pVal 
+        //{
+        //        type    triSurfaceMesh;
+        //        file    "pVal.stl";
+        //}
+        out 
+        {
+                type    triSurfaceMesh;
+                file    "outlet.stl";
+        }       
+}
+vertices
+(
+        name Mx0y0 $x0y0m
+        name Mx1y0 $x1y0m
+        name Mx2y0 $x2y0m
+
+        name Mx0y1 $x0y1m 
+        name Px0y1 $x0y1p
+        name Nx0y1 $x0y1n 
+
+        name Mx1y1 $x1y1m
+        name Px1y1 $x1y1p
+        name Nx1y1 $x1y1n
+
+        name Mx2y1 $x2y1m
+        name Px2y1 $x2y1p
+        name Nx2y1 $x2y1n 
+
+        name Mx0y2 $x0y2m
+        name Px0y2 $x0y2p
+        name Nx0y2 $x0y2n 
+
+        name Mx2y2 project $x2y2m (hub mPer out)
+        name Px2y2 project $x2y2p (hub pPer out)
+        name Nx2y2 project $x2y2n (hub nPer out)
+
+        name Mx0y3 $x0y3m
+        name Px0y3 $x0y3p
+        name Nx0y3 $x0y3n 
+
+        name Mx2y3 $x2y3m
+        name Px2y3 $x2y3p
+        name Nx2y3 $x2y3n
+
+        name Mx0y4 $x0y4m
+        name Px0y4 $x0y4p
+        name Nx0y4 $x0y4n 
+
+        name Mx2y4 $x2y4m
+        name Px2y4 $x2y4p
+        name Nx2y4 $x2y4n
+
+        name Mx2y5 $x2y5m
+        name Px2y5 $x2y5p
+        name Nx2y5 $x2y5n       
+
+        name MxSy0 $xSy0m
+
+        name MxSy1 $xSy1m
+        name PxSy1 $xSy1p
+        name NxSy1 $xSy1n
+
+        name MxSy2 $xSy2m
+        name PxSy2 $xSy2p
+        name NxSy2 $xSy2n
+
+        name MxSy3 $xSy3m
+        name PxSy3 $xSy3p
+        name NxSy3 $xSy3n
+
+        name MxSy4 $xSy4m
+        name PxSy4 $xSy4p
+        name NxSy4 $xSy4n
+
+);
+
+edges
+(
+        arc Mx0y3 Px0y3 $Mx0y3Px0y3
+        arc Mx0y4 Px0y4 $Mx0y4Px0y4
+        arc Mx2y4 Px2y4 $Mx2y4Px2y4 
+        arc Mx2y5 Px2y5 $Mx2y5Px2y5
+
+        arc Mx0y3 Nx0y3 $Mx0y3Nx0y3
+        arc Mx0y4 Nx0y4 $Mx0y4Nx0y4
+        arc Mx2y4 Nx2y4 $Mx2y4Nx2y4 
+        arc Mx2y5 Nx2y5 $Mx2y5Nx2y5
+
+        arc MxSy3 PxSy3 $MxSy3PxSy3
+        arc MxSy4 PxSy4 $MxSy4PxSy4
+        arc MxSy3 NxSy3 $MxSy3NxSy3
+        arc MxSy4 NxSy4 $MxSy4NxSy4
+
+        arc Mx0y2 Px0y2 $Mx0y2Px0y2
+        arc Mx0y2 Nx0y2 $Mx0y2Nx0y2
+        arc Mx2y3 Px2y3 $Mx2y3Px2y3 
+        arc Mx2y3 Nx2y3 $Mx2y3Nx2y3 
+
+        project Mx2y0 Px2y1 (hub pPer)
+        project Mx2y0 Nx2y1 (hub nPer)
+        project Mx2y1 Px2y1 (hub pVal)
+        project Mx2y1 Nx2y1 (hub nVal)
+        project Px2y1 Px2y2 (hub pPer)
+        project Nx2y1 Nx2y2 (hub nPer)
+        project Mx2y1 Mx2y2 (hub mPer)
+        project Mx2y2 Px2y2 (hub out)
+        project Mx2y2 Nx2y2 (hub out)
+
+
+
+
+);
+
+blocks
+(
+        //     0    3     7     4     1     2     6     5
+    hex (Mx0y3 Mx0y4 Px0y4 Px0y3 MxSy3 MxSy4 PxSy4 PxSy3) ($ptsRTopBL $ptsTheta $ptsZslip) simpleGrading ($gTopBL 1 $gAxSlip) //(0.000575 1 0.457)              // Top BL block slip pos
+    hex (Nx0y3 Nx0y4 Mx0y4 Mx0y3 NxSy3 NxSy4 MxSy4 MxSy3) ($ptsRTopBL $ptsTheta $ptsZslip) simpleGrading ($gTopBL 1 $gAxSlip) //(0.000575 1 0.457)              // Top BL block slip neg
+
+    hex (MxSy3 MxSy4 PxSy4 PxSy3 Mx2y4 Mx2y5 Px2y5 Px2y4) ($ptsRTopBL $ptsTheta $ptsZnoSlip) simpleGrading ($gTopBL 1 $gAxNoSlip) //(0.000575 1 0.274)          //Top BL block no-slip pos
+    hex (NxSy3 NxSy4 MxSy4 MxSy3 Nx2y4 Nx2y5 Mx2y5 Mx2y4) ($ptsRTopBL $ptsTheta $ptsZnoSlip) simpleGrading ($gTopBL 1 $gAxNoSlip) //(0.000575 1 0.274)          //Top BL block no-slip neg
+
+    hex (Mx0y2 Mx0y3 Px0y3 Px0y2 MxSy2 MxSy3 PxSy3 PxSy2) ($ptsRMid $ptsTheta $ptsZslip) simpleGrading (1 1 $gAxSlip)           // Mid block slip pos
+    hex (Nx0y2 Nx0y3 Mx0y3 Mx0y2 NxSy2 NxSy3 MxSy3 MxSy2) ($ptsRMid $ptsTheta $ptsZslip) simpleGrading (1 1 $gAxSlip)           // Mid block slip neg
+
+    hex (MxSy2 MxSy3 PxSy3 PxSy2 Mx2y3 Mx2y4 Px2y4 Px2y3) ($ptsRMid $ptsTheta $ptsZnoSlip) simpleGrading (1 1 $gAxNoSlip)               // Mid block no-slip pos
+    hex (NxSy2 NxSy3 MxSy3 MxSy2 Nx2y3 Nx2y4 Mx2y4 Mx2y3) ($ptsRMid $ptsTheta $ptsZnoSlip) simpleGrading (1 1 $gAxNoSlip)               // Mid block no-slip neg
+
+    hex (Mx0y1 Mx0y2 Px0y2 Px0y1 MxSy1 MxSy2 PxSy2 PxSy1) ($ptsRLow $ptsTheta $ptsZslip) simpleGrading ($gRLow 1 $gAxSlip)              // Low block slip pos
+    hex (Nx0y1 Nx0y2 Mx0y2 Mx0y1 NxSy1 NxSy2 MxSy2 MxSy1) ($ptsRLow $ptsTheta $ptsZslip) simpleGrading ($gRLow 1 $gAxSlip)              // Low block slip neg
+
+    hex (MxSy1 MxSy2 PxSy2 PxSy1 Mx1y1 Mx2y3 Px2y3 Px1y1) ($ptsRLow $ptsTheta $ptsZnoSlip) simpleGrading ($gRLow 1 $gAxNoSlip)          // Low block no-slip pos
+    hex (NxSy1 NxSy2 MxSy2 MxSy1 Nx1y1 Nx2y3 Mx2y3 Mx1y1) ($ptsRLow $ptsTheta $ptsZnoSlip) simpleGrading ($gRLow 1 $gAxNoSlip)          // Low block no-slip ned 
+
+    hex (Mx1y1 Mx2y3 Px2y3 Px1y1 Mx2y1 Mx2y2 Px2y2 Px2y1) ($ptsRLow $ptsTheta $ptsHubBL) simpleGrading ($gRLow 1 $gHubBL)               // Spinner nose block pos
+    hex (Nx1y1 Nx2y3 Mx2y3 Mx1y1 Nx2y1 Nx2y2 Mx2y2 Mx2y1) ($ptsRLow $ptsTheta $ptsHubBL) simpleGrading ($gRLow 1 $gHubBL)               // Spinner nose block neg 
+
+    // Hub block slip
+    hex (Mx0y0 MxSy0 NxSy1 Nx0y1 Px0y1 PxSy1 MxSy1 Mx0y1) ($ptsZslip $ptsTheta $ptsRHub) 
+    edgeGrading 
+    (
+        $gAxSlip $gAxSlip $gAxSlip $gAxSlip
+        $G $G 1 1
+        $G $G 1 1
+    )
+    // Hub block no-slip
+    hex (MxSy0 Mx1y0 Nx1y1 NxSy1 PxSy1 Px1y1 Mx1y1 MxSy1) ($ptsZnoSlip $ptsTheta $ptsRHub) //simpleGrading (0.274 1 1)
+    edgeGrading 
+    (
+        $gAxNoSlip $gAxNoSlip $gAxNoSlip $gAxNoSlip 
+        $G $G 1 1
+        $G $G 1 1
+    )
+
+   // Hub block on the spinner nose - butterfly mesh
+   hex (Mx1y0 Mx2y0 Nx2y1 Nx1y1 Px1y1 Px2y1 Mx2y1 Mx1y1) ($ptsHubBL  $ptsTheta $ptsRHub) // simpleGrading (0.0008 1 1)
+        edgeGrading 
+        (
+                $gHubBL $gHubBL $gHubBL $gHubBL
+                $G $G 1 1
+                $G $G 1 1
+        )	// Butterfly Mesh
+
+
+);
+
+faces
+(
+        project (Mx2y0 Nx2y1 Mx2y1 Px2y1) hub
+        project (Mx2y1 Mx2y2 Px2y2 Px2y1) hub
+        project (Nx2y1 Nx2y2 Mx2y2 Mx2y1) hub
+);
+
+boundary
+(
+        inlet
+        {
+                type patch;
+                faces
+                (
+                        // 0 3 7 4
+                        (Mx0y3 Mx0y4 Px0y4 Px0y3)
+                        (Nx0y3 Nx0y4 Mx0y4 Mx0y3)
+                        (Mx0y2 Mx0y3 Px0y3 Px0y2)
+                        (Nx0y2 Nx0y3 Mx0y3 Mx0y2)
+                        (Mx0y1 Mx0y2 Px0y2 Px0y1)
+                        (Nx0y1 Nx0y2 Mx0y2 Mx0y1)
+                        (Mx0y0 Nx0y1 Mx0y1 Px0y1)
+                );
+        }
+        outlet
+        {
+                type patch;
+                faces
+                (
+                        // 1 2 6 5 
+                        (Mx2y4 Mx2y5 Px2y5 Px2y4)
+                        (Nx2y4 Nx2y5 Mx2y5 Mx2y4)
+                        (Mx2y3 Mx2y4 Px2y4 Px2y3)
+                        (Nx2y3 Nx2y4 Mx2y4 Mx2y3)
+                        (Mx2y2 Mx2y3 Px2y3 Px2y2)
+                        (Nx2y2 Nx2y3 Mx2y3 Mx2y2)
+                );
+        }
+        hub
+	{
+                type wall;
+                faces
+                (
+                        // 1 2 6 5 
+                        (Mx2y0 Nx2y1 Mx2y1 Px2y1)
+                        (Mx2y1 Mx2y2 Px2y2 Px2y1)
+                        (Nx2y1 Nx2y2 Mx2y2 Mx2y1)
+                );
+        }
+        casing
+        {
+                type wall;
+                faces
+                (
+                        // 4 5 6 7 
+                        (PxSy4 Px2y5 Mx2y5 MxSy4)
+                        (MxSy4 Mx2y5 Nx2y5 NxSy4)
+                );
+        }
+        FarUpstreamCas
+        {
+                type wall;
+                faces
+                (
+                        // 4 5 6 7 
+                        (Px0y4 PxSy4 MxSy4 Mx0y4)
+                        (Mx0y4 MxSy4 NxSy4 Nx0y4)
+                );
+        }
+	nCyclicU  
+        {
+                type cyclicSlip;
+                neighbourPatch pCyclicU;
+                faces
+                (
+                        //(0 1 2 3)
+                        (Nx0y3 Nx0y4 NxSy3 NxSy4)
+                        (NxSy3 NxSy4 Nx2y5 Nx2y4)
+                        (Nx0y2 Nx0y3 NxSy2 NxSy3)
+                        (NxSy2 NxSy3 Nx2y4 Nx2y3)
+                        (Nx0y1 Nx0y2 NxSy1 NxSy2)
+                        (NxSy1 NxSy2 Nx2y3 Nx1y1)
+                        (Nx1y1 Nx2y3 Nx2y2 Nx2y1)
+                        (Mx0y0 Nx0y1 MxSy0 NxSy1)
+                        (MxSy0 NxSy1 Nx1y1 Mx1y0)
+                        (Mx1y0 Nx1y1 Nx2y1 Mx2y0)
+                );
+                transform rotational;
+                rotationAxis (0 0 1);
+                rotationCentre (0 0 0);
+                matchTolerance  $tol;
+        }
+        pCyclicU
+        {
+                type cyclicSlip;
+                neighbourPatch nCyclicU;
+                faces
+                (
+                        //(4 7 6 5)
+                        (Px0y3 PxSy3 PxSy4 Px0y4)
+                        (PxSy3 Px2y4 Px2y5 PxSy4)
+                        (Px0y2 PxSy2 PxSy3 Px0y3)
+                        (PxSy2 Px2y3 Px2y4 PxSy3)
+                        (Px0y1 PxSy1 PxSy2 Px0y2)
+                        (PxSy1 Px1y1 Px2y3 PxSy2)
+                        (Px1y1 Px2y1 Px2y2 Px2y3)
+                        (Mx0y0 MxSy0 PxSy1 Px0y1)
+                        (MxSy0 Mx1y0 Px1y1 PxSy1)
+                        (Mx1y0 Mx2y0 Px2y1 Px1y1)
+
+                );
+                transform rotational;
+                rotationAxis (0 0 1);
+                rotationCentre (0 0 0);
+                matchTolerance  $tol;
+        }
+);
+
+mergePatchPairs
+(
+//      (master slave)
+);
+
+
+// ************************************************************************* //
+
+

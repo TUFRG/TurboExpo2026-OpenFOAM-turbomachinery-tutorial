@@ -1,0 +1,113 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2112                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      createPatchDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+pointSync false;
+
+tol 1e-6;
+
+// Patches to create
+
+patches
+(
+    {
+        name rotorShroud;
+
+        patchInfo
+        {
+            type wall;
+        }
+
+        constructFrom patches;
+
+        patches (PASSAGE-SHROUD INBLOCK-SHROUD OUTBLOCK-SHROUD);
+    }
+    {
+        name rotorHub;
+
+        patchInfo
+        {
+            type wall;
+        }
+
+        constructFrom patches;
+
+        patches (PASSAGE-HUB INBLOCK-HUB OUTBLOCK-HUB);
+    }
+    {
+        name nCyclicR;
+
+        patchInfo
+        {
+            type cyclicSlip;
+            neighbourPatch pCyclicR;
+
+            transform rotational;
+            rotationAxis   (0 0 1);
+            rotationCentre (0 0 0);
+
+            matchTolerance $tol;
+        }
+
+        constructFrom patches;
+
+        patches (INBLOCK-PER2 PASSAGE-PER2 OUTBLOCK-PER2);
+    }
+    {
+        name pCyclicR;
+
+        patchInfo
+        {
+            type cyclicSlip;
+            neighbourPatch nCyclicR;
+
+            transform rotational;
+            rotationAxis   (0 0 1);
+            rotationCentre (0 0 0);
+
+            matchTolerance $tol;
+        }
+
+        constructFrom patches;
+
+        patches (INBLOCK-PER1 PASSAGE-PER1 OUTBLOCK-PER1);
+    }
+    {
+       name rotorInlet;
+
+       patchInfo
+       {
+           type wall;
+       }
+
+       constructFrom patches;
+
+       patches (INBLOCK-INFLOW);
+   }
+   {
+       name rotorOutlet;
+
+       patchInfo
+       {
+           type wall;
+       }
+
+       constructFrom patches;
+
+       patches (OUTBLOCK-OUTFLOW);
+   }
+);
+
+
+//************************************************************************ //

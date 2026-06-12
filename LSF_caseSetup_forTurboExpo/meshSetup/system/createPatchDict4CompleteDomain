@@ -1,0 +1,122 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2006                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      createPatchDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+pointSync false;//true;
+
+tol 5e-3;
+
+// Patches to create.
+patches
+(
+    {
+        name interface0;
+
+        patchInfo
+        {
+            type cyclicPeriodicAMI;
+            inGroups 1(cyclicAMI);
+            neighbourPatch interface1;
+            periodicPatch nCyclicU;
+            matchTolerance $tol;
+        }
+
+        constructFrom patches;
+
+         patches (outlet); 
+    }
+    {
+        name interface1;
+
+        patchInfo
+        {
+            type cyclicPeriodicAMI;
+            inGroups 1(cyclicAMI);
+            neighbourPatch interface0;
+            periodicPatch nCyclicR;
+            matchTolerance $tol;
+        }
+
+        constructFrom patches;
+
+		patches (rotorInlet); 
+    }
+    {
+        name interface2;
+
+        patchInfo
+        {
+            type cyclicPeriodicAMI;
+            inGroups 1(cyclicAMI);
+            neighbourPatch interface3;
+            periodicPatch nCyclicR;
+            matchTolerance $tol;
+        }
+
+        constructFrom patches;
+
+        patches (rotorOutlet); //rotor outlet
+    }
+    {
+        name interface3;
+
+        patchInfo
+        {
+            type cyclicPeriodicAMI;
+            inGroups 1(cyclicAMI);
+            neighbourPatch interface2;
+            periodicPatch nCyclicS;
+            matchTolerance $tol;
+        }
+
+        constructFrom patches;
+
+        patches (statorInlet); //stator inlet
+    }
+    {
+        name interface4;
+
+        patchInfo
+        {
+            type cyclicPeriodicAMI;
+            inGroups 1(cyclicAMI);
+            neighbourPatch interface5;
+            periodicPatch nCyclicS;
+            matchTolerance $tol;
+        }
+
+        constructFrom patches;
+
+        patches (statorOutlet); //stator outlet
+    }
+    {
+        name interface5;
+
+        patchInfo
+        {
+            type cyclicPeriodicAMI;
+            inGroups 1(cyclicAMI);
+            neighbourPatch interface4;
+            periodicPatch nPer;
+            matchTolerance $tol;
+        }
+
+        constructFrom patches;
+
+        patches (Inlet); //nozzle inlet
+    }
+);
+
+// ************************************************************************* //

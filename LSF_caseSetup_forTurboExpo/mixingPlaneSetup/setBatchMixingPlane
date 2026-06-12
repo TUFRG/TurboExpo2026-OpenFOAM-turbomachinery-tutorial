@@ -1,0 +1,7 @@
+faceSet interface0Zone new patchToFace interface0
+faceSet interface1Zone new patchToFace interface1
+faceSet interface2Zone new patchToFace interface2
+faceSet interface3Zone new patchToFace interface3
+faceSet interface4Zone new patchToFace interface4
+faceSet interface5Zone new patchToFace interface5
+quit

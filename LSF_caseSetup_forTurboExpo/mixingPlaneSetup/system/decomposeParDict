@@ -1,0 +1,71 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      decomposeParDict;
+}
+
+numberOfSubdomains 6;
+
+method          scotch;
+
+constraints
+{
+    // As long as the mixingPlane is not parallellized:
+    mixingPlaneOnSingleProcessor
+    {
+        //- Keep all of faceSet on a single processor. This puts all cells
+        //  connected with a point, edge or face on the same processor.
+        //  (just having face connected cells might not guarantee a balanced
+        //  decomposition)
+        // The processor can be -1 (the decompositionMethod chooses the
+        // processor for a good load balance) or explicitly provided (upsets
+        // balance). HOWEVER, THIS OPTION DOES NOT WORK FOR COUPLED PATCHES!
+
+		// Jeff Defoe note: making a faceSet that is the union of the sets
+		// for the upstream and downstream side of each mixing plane would
+		// allow for specification of the combined sets here, with -1 as
+		// the processor selection for each, to allow it to decompose
+		// however it likes
+        
+        type    singleProcessorFaceSets;
+        sets
+        (
+            ("interface0Zone" 0) // At same processor as next one
+            ("interface1Zone" 0)  // At same processor as previous one
+            ("interface2Zone" 1) // At same processor as next one
+            ("interface3Zone" 1)  // At same processor as previous one
+            ("interface4Zone" 2) // At same processor as next one
+            ("interface5Zone" 2)  // At same processor as previous one
+        );
+    }
+
+    patchesU
+    {
+        type    preservePatches;
+        patches (nCyclicU pCyclicU);
+        enabled true;
+    }
+
+    patchesR
+    {
+        type    preservePatches;
+        patches (nCyclicR pCyclicR); 
+        enabled true;
+    }
+
+    patchesS
+    {
+        type    preservePatches;
+        patches (nCyclicS pCyclicS); 
+        enabled true;
+    }
+
+    patchesD
+    {
+        type    preservePatches;
+        patches (nPer pPer); 
+        enabled true;
+    }
+}

@@ -1,0 +1,50 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2006                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    location    "0";
+    object      nut;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 2 -1 0 0 0 0];
+
+I 0.05;
+U 28;
+
+// this doesn't make much sense, but use it for now
+val #eval{1.5*$I*$I*$U*$U}; //k=1.5*I^2*U^2
+vt #eval{0.0000182*($val-1)};
+internalField   uniform $vt;
+
+boundaryField
+{
+	#includeEtc "caseDicts/setConstraintTypes"
+	
+	inlet
+	{
+		type            calculated;
+		value           $internalField;
+	}
+	Outlet
+	{
+		type            calculated;
+		value           $internalField;		
+	}
+	wall
+	{		
+		type            nutUSpaldingWallFunction;
+		value           $internalField;		
+	}
+}
+
+
+// ************************************************************************* //

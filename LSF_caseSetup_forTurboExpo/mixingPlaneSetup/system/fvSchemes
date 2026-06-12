@@ -1,0 +1,76 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2006                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      fvSchemes;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+ddtSchemes
+{
+	default         steadyState;
+}
+
+gradSchemes
+{
+	default        Gauss linear;
+}
+
+divSchemes
+{
+	    default                 none;
+        div(phi,U)              bounded Gauss linearUpwindV limited;
+        turbulence				bounded Gauss linearUpwind limited;
+        div(phi,k)              $turbulence; //bounded Gauss linearUpwind limited;
+        div(phi,nuTilda)        $turbulence; //bounded Gauss linearUpwind limited;
+        div(phi,epsilon)        $turbulence; //bounded Gauss linearUpwind limited;
+        div(phi,omega)          $turbulence; //bounded Gauss linearUpwind limited;
+        div((nuEff*dev2(T(grad(U)))))     Gauss linear;
+
+}
+
+laplacianSchemes
+{
+        default         Gauss linear corrected;
+}
+
+interpolationSchemes
+{
+        default         linear;
+}
+
+snGradSchemes
+{
+        default         corrected;
+}
+
+wallDist
+{
+	method 	    meshWave;
+	nRequired       yes;
+}
+
+mixingPlane
+{
+    default         areaAveraging;
+    U               areaAveraging;
+    p               areaAveraging;
+    k               fluxAveraging; //Transported variable
+    epsilon         fluxAveraging; //Transported variable
+    nuTilda         fluxAveraging; //Transported variable
+    omega	        fluxAveraging; //Transported variable
+    //NOTE: Ideally, tangential velocity components should also be
+    //fluxAveraged, while keeping areaAveraging for normal velocity
+    //component (to preserve perfect mass conservation)
+}
+
+// ************************************************************************* //

@@ -1,0 +1,90 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2112                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      changeDictionaryDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+p
+{
+    boundaryField
+    {
+        wall
+        {
+            type fixedFluxPressure;
+        }
+
+        interface0 { type mixingPlane; }
+        interface1 { type mixingPlane; }
+        interface2 { type mixingPlane; }
+        interface3 { type mixingPlane; }
+        interface4 { type mixingPlane; }
+        interface5 { type mixingPlane; }
+    }
+}
+
+U
+{
+    boundaryField
+    {
+        hub
+        {
+            type rotatingWallVelocity;
+            origin (0 0 0);
+            axis   (0 0 1);
+            omega  #eval{1775*2*pi()/60};
+        }
+
+        FarUpstrmcas { type slip; }
+        Hub          { type slip; }
+        Shroud       { type slip; }
+        ROTORBLADE   { type movingWallVelocity; value uniform (0 0 0); }
+        BLADE        { type movingWallVelocity; value uniform (0 0 0); }
+        rotorHub     { type movingWallVelocity; value uniform (0 0 0); }
+
+        interface0 { type mixingPlane; }
+        interface1 { type mixingPlane; }
+        interface2 { type mixingPlane; }
+        interface3 { type mixingPlane; }
+        interface4 { type mixingPlane; }
+        interface5 { type mixingPlane; }
+    }
+}
+
+nuTilda
+{
+    boundaryField
+    {
+        interface0 { type mixingPlane; }
+        interface1 { type mixingPlane; }
+        interface2 { type mixingPlane; }
+        interface3 { type mixingPlane; }
+        interface4 { type mixingPlane; }
+        interface5 { type mixingPlane; }
+    }
+}
+
+nut
+{
+    boundaryField
+    {
+        interface0 { type mixingPlane; }
+        interface1 { type mixingPlane; }
+        interface2 { type mixingPlane; }
+        interface3 { type mixingPlane; }
+        interface4 { type mixingPlane; }
+        interface5 { type mixingPlane; }
+    }
+}
+
+
+// ************************************************************************* //

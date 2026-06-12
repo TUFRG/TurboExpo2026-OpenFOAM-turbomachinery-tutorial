@@ -1,0 +1,126 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2112                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      createPatchDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+pointSync false;
+
+tol 1e-6;
+
+// Patches to create
+
+patches
+(
+    {
+        name statorShroud;
+
+        patchInfo
+        {
+            type wall;
+        }
+
+        constructFrom patches;
+
+        patches (PASSAGE-SHROUD INBLOCK-SHROUD OUTBLOCK-SHROUD);
+    }
+    {
+        name statorHub;
+
+        patchInfo
+        {
+            type wall;
+        }
+
+        constructFrom patches;
+
+        patches (PASSAGE-HUB INBLOCK-HUB OUTBLOCK-HUB);
+    }
+    {
+        name nCyclicS;
+
+        patchInfo
+        {
+            type cyclicSlip;
+            neighbourPatch pCyclicS;
+
+            transform rotational;
+            rotationAxis   (0 0 1);
+            rotationCentre (0 0 0);
+
+            matchTolerance $tol;
+        }
+
+        constructFrom patches;
+
+        patches (INBLOCK-PER2 OUTBLOCK-PER2 PASSAGE-PER2);
+    }
+    {
+        name pCyclicS;
+
+        patchInfo
+        {
+            type cyclicSlip;
+            neighbourPatch nCyclicS;
+
+            transform rotational;
+            rotationAxis   (0 0 1);
+            rotationCentre (0 0 0);
+
+            matchTolerance $tol;
+        }
+
+        constructFrom patches;
+
+        patches (INBLOCK-PER1 OUTBLOCK-PER1 PASSAGE-PER1);
+    }
+    {
+       name statorInlet;
+
+       patchInfo
+       {
+           type wall;
+       }
+
+       constructFrom patches;
+
+       patches (INBLOCK-INFLOW);
+    }
+    {
+       name statorOutlet;
+
+       patchInfo
+       {
+           type wall;
+       }
+
+       constructFrom patches;
+
+       patches (OUTBLOCK-OUTFLOW);
+    }
+    {
+     	name STATORBLADE;
+
+        patchInfo
+        {
+            type wall;
+        }
+
+	constructFrom patches;
+
+        patches (BLADE);
+    }
+
+);
+
+
+//************************************************************************ //

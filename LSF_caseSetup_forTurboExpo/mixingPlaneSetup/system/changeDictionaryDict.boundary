@@ -1,0 +1,137 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2112                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      changeDictionaryDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+boundary
+{   
+	interface0
+    {
+    	inGroups        1 ( mixingPlane );
+        type            mixingPlane;
+        shadowPatch     interface1;
+		neighbourPatch	interface1;
+		zone 			interface0Zone;
+        coordinateSystem
+        {
+            type            cylindrical;
+            name            mixingCS;
+            origin          (0 0 0);
+            e1              (1 0 0);
+            e3              (0 0 1);
+            inDegrees       true;
+        }
+        ribbonPatch     
+        {
+            sweepAxis       Theta;
+            stackAxis       R;
+            discretization  followPatchDiscretization;
+            followPatchDiscretizationParams
+            {
+                follow          bothPatches;
+            }
+        }
+        weightFactorsEvalMethod ami;
+        writeAveragedPatchField 0;
+    }
+ 
+    interface1
+    {
+    	inGroups        1 ( mixingPlane );
+        type            mixingPlane;
+        shadowPatch     interface0;
+		neighbourPatch	interface0;
+		zone 			interface1Zone;
+    }
+ 
+    interface2
+    {
+    	inGroups        1 ( mixingPlane );
+        type            mixingPlane;
+        shadowPatch     interface3;
+		neighbourPatch	interface3;
+		zone 			interface2Zone;
+        coordinateSystem
+        {
+            type            cylindrical;
+            name            mixingCS;
+            origin          (0 0 0);
+            e1              (1 0 0);
+            e3              (0 0 1);
+            inDegrees       true;
+        }
+        ribbonPatch     
+        {
+            sweepAxis       Theta;
+            stackAxis       R;
+            discretization  followPatchDiscretization;
+            followPatchDiscretizationParams
+            {
+                follow          bothPatches;
+            }
+        }
+        weightFactorsEvalMethod ami;
+        writeAveragedPatchField 0;
+    }
+ 
+    interface3
+    {
+    	inGroups        1 ( mixingPlane );
+        type            mixingPlane;
+        shadowPatch     interface2;
+		neighbourPatch	interface2;
+		zone 			interface3Zone;
+    }
+ 
+    interface4
+    {
+    	inGroups        1 ( mixingPlane );
+        type            mixingPlane;
+        shadowPatch     interface5;
+		neighbourPatch	interface5;
+		zone 			interface4Zone;
+        coordinateSystem
+        {
+            type            cylindrical;
+            name            mixingCS;
+            origin          (0 0 0);
+            e1              (1 0 0);
+            e3              (0 0 1);
+            inDegrees       true;
+        }
+        ribbonPatch     
+        {
+            sweepAxis       Theta;
+            stackAxis       R;
+            discretization  followPatchDiscretization;
+            followPatchDiscretizationParams
+            {
+                follow          bothPatches;
+            }
+        }
+        weightFactorsEvalMethod ami;
+        writeAveragedPatchField 0;
+    }
+ 
+    interface5
+    {
+    	inGroups        1 ( mixingPlane );
+        type            mixingPlane;
+        shadowPatch     interface4;
+		neighbourPatch	interface4;
+		zone 			interface5Zone;
+    }
+}
+
+// ************************************************************************* //

@@ -1,0 +1,235 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2112                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format	ascii;
+    class	dictionary;
+    object	blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// The axis of rotation of this machine is the z axis
+// Hence the radial direction is denoted x and the axial direction is z (x = mz + c)
+// There are three positions in the circumferential cordinate in this domain
+// The positive rotation is represented as p and negative as n while the middle position is represented as m
+// This is a converging nozzle that has a constant area extension towards the end to allow for a zeroGradient BC
+
+scale  1;   // The data came in m so this converts it to m (SI units)
+tol 1e-6;
+
+ptsZCon 20;     //contracting part
+ptsZEnd 6;	//end extrusion
+ptsR 55;
+ptsTh 25; //150; //100;
+
+//Defining grading
+gZCon 1;
+gZEnd 1;
+gTh 1;
+
+//multi-grading in radial direction
+div1Dist 0.1;
+div1Ratio 23;
+div1Grading 10;
+
+div2Dist #eval{1 - 2*$div1Dist};
+div2Ratio #eval{100 - 2*$div1Ratio};
+div2Grading 1;
+
+div3Dist #eval{1*$div1Dist};
+div3Ratio #eval{1*$div1Ratio};
+div3Grading #eval{1/$div1Grading};
+
+//
+casLEx 0.252;			//Stator block outlet radial coordinate - casing
+casLEz 0.4;			//Stator block outlet axial coordinate - casing
+hubLEx 0.155;			//Stator block outlet radial coordinate - hub
+hubLEz 0.4;			//Stator block outlet axial coordinate - hub
+
+casMidTEx 0.237;		//farDownstream before outlet at casing where convergence stops on the nozzle
+casMidTEz 0.650;		//farDownstream before outlet at casing where convergence stops on the nozzle
+hubMidTEx 0.170;		//farDownstream before outlet at hub where convergence stops on the nozzle
+hubMidTEz 0.650;		//farDownstream before outlet at hub where convergence stops on the nozzle
+
+casTEx 0.237;			//farDownstream outlet at casing
+casTEz 0.730;			//farDownstream outlet at casing
+hubTEx 0.170;			//farDownstream outlet at hub
+hubTEz 0.730;			//farDownstream outlet at hub
+
+
+B 72;				//Number of blades
+Angle #eval{2*360/$B};          //Angle for 2 blade passages
+pAng #eval{0.5*$Angle};         //positive Angle
+nAng #eval{-0.5*$Angle};        //negative Angle
+pMidAng #eval{0.5 * $pAng};     //positve midAngle
+nMidAng #eval{0.5*$nAng};       //negative midAngle
+
+x0y0m ($hubLEx 0 $hubLEz);
+x0y0p (#eval{$hubLEx * cos(degToRad($pAng))} #eval{$hubLEx * sin(degToRad($pAng))} $hubLEz);
+x0y0n (#eval{$hubLEx * cos(degToRad($nAng))} #eval{$hubLEx * sin(degToRad($nAng))} $hubLEz);
+
+x0y1m ($casLEx 0 $casLEz);
+x0y1p (#eval{$casLEx * cos(degToRad($pAng))} #eval{$casLEx * sin(degToRad($pAng))} $casLEz);
+x0y1n (#eval{$casLEx * cos(degToRad($nAng))} #eval{$casLEx * sin(degToRad($nAng))} $casLEz);
+
+x1y0m ($hubMidTEx 0 $hubMidTEz);
+x1y0p (#eval{$hubMidTEx * cos(degToRad($pAng))} #eval{$hubMidTEx * sin(degToRad($pAng))} $hubMidTEz);
+x1y0n (#eval{$hubMidTEx * cos(degToRad($nAng))} #eval{$hubMidTEx * sin(degToRad($nAng))} $hubMidTEz);
+
+x1y1m ($casMidTEx 0 $casMidTEz);
+x1y1p (#eval{$casMidTEx * cos(degToRad($pAng))} #eval{$casMidTEx * sin(degToRad($pAng))} $casMidTEz);
+x1y1n (#eval{$casMidTEx * cos(degToRad($nAng))} #eval{$casMidTEx * sin(degToRad($nAng))} $casMidTEz);
+
+x2y0m ($hubTEx 0 $hubTEz);
+x2y0p (#eval{$hubTEx * cos(degToRad($pAng))} #eval{$hubTEx * sin(degToRad($pAng))} $hubTEz);
+x2y0n (#eval{$hubTEx * cos(degToRad($nAng))} #eval{$hubTEx * sin(degToRad($nAng))} $hubTEz);
+
+x2y1m ($casTEx 0 $casTEz);
+x2y1p (#eval{$casTEx * cos(degToRad($pAng))} #eval{$casTEx * sin(degToRad($pAng))} $casTEz);
+x2y1n (#eval{$casTEx * cos(degToRad($nAng))} #eval{$casTEx * sin(degToRad($nAng))} $casTEz);
+
+
+vertices
+(
+        name Mx0y0 $x0y0m
+        name Mx0y1 $x0y1m
+        name Mx1y0 $x1y0m
+        name Mx1y1 $x1y1m
+        name Mx2y0 $x2y0m
+        name Mx2y1 $x2y1m
+
+        name Px0y0 $x0y0p
+        name Px0y1 $x0y1p
+        name Px1y0 $x1y0p
+        name Px1y1 $x1y1p
+        name Px2y0 $x2y0p
+        name Px2y1 $x2y1p
+
+        name Nx0y0 $x0y0n
+        name Nx0y1 $x0y1n
+        name Nx1y0 $x1y0n
+        name Nx1y1 $x1y1n
+        name Nx2y0 $x2y0n
+        name Nx2y1 $x2y1n
+
+);
+
+edges
+(
+        arc Px0y0 Nx0y0 $x0y0m
+        arc Px0y1 Nx0y1 $x0y1m
+        arc Px1y0 Nx1y0 $x1y0m
+        arc Px1y1 Nx1y1 $x1y1m
+        arc Px2y0 Nx2y0 $x2y0m
+        arc Px2y1 Nx2y1 $x2y1m
+);
+
+blocks
+(
+        //     0    1     2     3     4     5     6     7
+    hex (Px0y0 Px1y0 Nx1y0 Nx0y0 Px0y1 Px1y1 Nx1y1 Nx0y1) ($ptsZCon $ptsTh $ptsR) 
+    simpleGrading //(1 1 1)
+    ($gZCon $gTh
+        (
+                ($div1Dist $div1Ratio $div1Grading)
+                ($div2Dist $div2Ratio $div2Grading)
+                ($div3Dist $div3Ratio $div3Grading)
+        )
+    )
+    hex (Px1y0 Px2y0 Nx2y0 Nx1y0 Px1y1 Px2y1 Nx2y1 Nx1y1) ($ptsZEnd $ptsTh $ptsR)
+    simpleGrading //(1 1 1)
+    ($gZEnd $gTh
+        (
+                ($div1Dist $div1Ratio $div1Grading)
+                ($div2Dist $div2Ratio $div2Grading)
+                ($div3Dist $div3Ratio $div3Grading)
+        )
+    )
+
+);
+
+
+boundary
+(
+        Inlet
+        {
+                type patch;
+                faces
+                (
+                        // 0 4 7 3
+                         (Px0y0 Px0y1 Nx0y1 Nx0y0)
+                );
+        }
+        Outlet
+	{
+                type patch;
+                faces
+                (
+                        // 1 2 6 5
+                        (Px2y0 Nx2y0 Nx2y1 Px2y1)
+                );
+        }
+        Hub
+        {
+                type wall;
+                faces
+                (
+                        // 1 2 6 5
+                         (Px0y0 Nx0y0 Nx1y0 Px1y0)
+                         (Px1y0 Nx1y0 Nx2y0 Px2y0)
+                );
+        }
+        Shroud
+        {
+                type wall;
+                faces
+                (
+                        // 4 5 6 7
+                         (Px0y1 Px1y1 Nx1y1 Nx0y1)
+                         (Px1y1 Px2y1 Nx2y1 Nx1y1)
+                );
+        }
+        nPer
+        {
+                type cyclicSlip;
+                neighbourPatch pPer;
+                faces
+                (
+                        //(0 1 2 3)
+                         (Nx0y0 Nx0y1 Nx1y1 Nx1y0)
+                         (Nx1y0 Nx1y1 Nx2y1 Nx2y0)
+                );
+                transform rotational;
+                rotationAxis (0 0 1);
+                rotationCentre (0 0 0);
+                matchTolerance  $tol;
+        }
+        pPer
+        {
+                type cyclicSlip;
+                neighbourPatch nPer;
+                faces
+                (
+                        //(4 7 6 5)
+                         (Px0y0 Px1y0 Px1y1 Px0y1)
+                         (Px1y0 Px2y0 Px2y1 Px1y1)
+                );
+                transform rotational;
+                rotationAxis (0 0 1);
+                rotationCentre (0 0 0);
+                matchTolerance  $tol;
+        }
+);
+
+mergePatchPairs
+(
+//      (master slave)
+);
+
+
+// ************************************************************************* //
